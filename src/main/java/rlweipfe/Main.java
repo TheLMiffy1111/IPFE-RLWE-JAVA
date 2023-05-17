@@ -348,7 +348,7 @@ public class Main {
 			System.out.println("Reading ciphertext from %s".formatted(c));
 			RLWEIPFECiphertext ct = readObject(Path.of(c));
 			if(k != null) {
-				System.out.println("Reading function key from %s".formatted(k));
+				System.out.println("Reading secret key from %s".formatted(k));
 				msk = readObject(Path.of(k));
 			}
 			if(rlwe == null) {
