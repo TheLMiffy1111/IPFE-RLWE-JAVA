@@ -187,7 +187,6 @@ public class RLWEIPFE {
 		ct.validate(params);
 		skY.validate(params);
 		Modulus mod = params.q();
-		int[][] c0sy = new int[mod.primes.length][];
 		int[][] dY = new int[mod.primes.length][params.n];
 		for(int j = 0; j < mod.primes.length; ++j) {
 			int q = mod.primes[j].q();
@@ -199,8 +198,8 @@ public class RLWEIPFE {
 			}
 		}
 		for(int i = 0; i < mod.primes.length; ++i) {
-			c0sy[i] = Arith.polyNTTMul(ct.ct0()[i], skY.skY()[i], mod, i);
-			Arith.vecSubAssign(dY[i], c0sy[i], mod, i);
+			int[] c0sy = Arith.polyNTTMul(ct.ct0()[i], skY.skY()[i], mod, i);
+			Arith.vecSubAssign(dY[i], c0sy, mod, i);
 		}
 		BigInteger[] xy = Arith.vecInverseCRT(dY, mod);
 		BigInteger[] xyR = new BigInteger[ct.n()];
@@ -208,6 +207,36 @@ public class RLWEIPFE {
 			xyR[i] = new BigDecimal(xy[i]).divide(mod.qDivK, RoundingMode.HALF_EVEN).toBigIntegerExact();
 		}
 		return xyR;
+	}
+
+	/**
+	 * @param ct The encrypted ciphertext associated with vector/matrix x 
+	 * @param msk The master secret key
+	 * @return x
+	 */
+	public int[][] decryptAll(RLWEIPFECiphertext ct, RLWEIPFESecretKey msk) {
+		ct.validate(params);
+		msk.validate(params);
+		Modulus mod = params.q();
+		int[][][] d = new int[params.l][mod.primes.length][];
+		for(int j = 0; j < mod.primes.length; ++j) {
+			int q = mod.primes[j].q();
+			for(int i = 0; i < params.l; ++i) {
+				int[] c0s = Arith.polyNTTMul(ct.ct0()[j], msk.sk()[i][j], mod, j);
+				d[i][j] = Arith.vecSub(ct.ct()[i][j], c0s, mod, j);
+			}
+		}
+		BigInteger[][] x = new BigInteger[params.l][];
+		int[][] xR = new int[ct.n()][params.l];
+		for(int i = 0; i < params.l; ++i) {
+			x[i] = Arith.vecInverseCRT(d[i], mod);
+		}
+		for(int i = 0; i < ct.n(); ++i) {
+			for(int j = 0; j < params.l; ++j) {
+				xR[i][j] = new BigDecimal(x[j][i]).divide(mod.qDivK, RoundingMode.HALF_EVEN).intValueExact();
+			}
+		}
+		return xR;
 	}
 
 	/**

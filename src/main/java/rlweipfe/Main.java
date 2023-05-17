@@ -13,8 +13,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.helper.HelpScreenException;
@@ -31,6 +29,7 @@ public class Main {
 			Map.entry("deriveFuncKey", Main::deriveFuncKey),
 			Map.entry("encrypt", Main::encrypt),
 			Map.entry("decrypt", Main::decrypt),
+			Map.entry("decryptAll", Main::decryptAll),
 			Map.entry("randomVector", Main::randomVector),
 			Map.entry("randomMatrix", Main::randomMatrix),
 			Map.entry("testDot", Main::testDot));
@@ -320,6 +319,53 @@ public class Main {
 				System.out.println("Writing result to %s".formatted(o));
 				writeVector(Path.of(o), xy);
 			}
+		}
+		catch(HelpScreenException e) {
+			// NO-OP
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	private static void decryptAll(String[] args) {
+		ArgumentParser parser = ArgumentParsers.newFor("decrypt").build();
+		parser.addArgument("-p").type(String.class).help("params file");
+		parser.addArgument("-c").type(String.class).required(true).help("ciphertext file");
+		parser.addArgument("-k").type(String.class).help("secret key file");
+		parser.addArgument("-o").type(String.class).required(true).help("output file");
+		try {
+			Namespace ns = parser.parseArgs(args);
+			String p = ns.getString("p");
+			String c = ns.getString("c");
+			String k = ns.getString("k");
+			String o = ns.getString("o");
+			if(p != null) {
+				System.out.println("Reading parameters from %s".formatted(p));
+				rlwe = new RLWEIPFE(readObject(Path.of(p)));
+			}
+			System.out.println("Reading ciphertext from %s".formatted(c));
+			RLWEIPFECiphertext ct = readObject(Path.of(c));
+			if(k != null) {
+				System.out.println("Reading function key from %s".formatted(k));
+				msk = readObject(Path.of(k));
+			}
+			if(rlwe == null) {
+				System.err.println("Parameters missing");
+				System.exit(1);
+			}
+			if(msk == null) {
+				System.err.println("Secret key missing");
+				System.exit(1);
+			}
+			System.out.println("Decrypting");
+			long time = System.nanoTime();
+			int[][] x = rlwe.decryptAll(ct, msk);
+			time = System.nanoTime()-time;
+			System.out.println("Decryption done in %f ms".formatted(time/1000000D));
+			System.out.println("Writing result to %s".formatted(o));
+			writeMatrix(Path.of(o), x);
 		}
 		catch(HelpScreenException e) {
 			// NO-OP
