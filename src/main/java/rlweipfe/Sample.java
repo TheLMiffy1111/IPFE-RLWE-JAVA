@@ -55,16 +55,20 @@ public class Sample {
 		}
 		return arr;
 	}
+	
+	public static int[][] normal(Modulus mod, double sigma, SecureRandom rand) {
+		return normalRounded(mod, sigma, rand);
+	}
 
 	/**
-	 * Generates normal distribution samples using Java's implementation.
+	 * Generates rounded normal distribution samples using Java's implementation.
 	 * This seems to work as well as the FACCT scheme and is faster.
 	 * @param mod The modulus parameters to be used
 	 * @param sigma The standard deviation to be used
 	 * @param rand The random number generator to be used
 	 * @return Samples from the normal distribution with standard deviation sigma centered on 0
 	 */
-	public static int[][] normal(Modulus mod, double sigma, SecureRandom rand) {
+	public static int[][] normalRounded(Modulus mod, double sigma, SecureRandom rand) {
 		int[][] arr = new int[mod.primes.length][mod.n];
 		for(int j = 0; j < mod.n; ++j) {
 			long val = Math.round(rand.nextGaussian(0, sigma));

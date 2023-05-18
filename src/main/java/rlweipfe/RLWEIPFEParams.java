@@ -95,14 +95,16 @@ public class RLWEIPFEParams implements Serializable {
 			sigma2 = SQRT_2*Math.sqrt(l+2)*n*sigma1*secSqrt*sigma;
 			sigma3 = sigma2*SQRT_2;
 
-			BigInteger qMin = BigDecimal.valueOf(2).
-					multiply(BigDecimal.valueOf(n)).
-					multiply(BigDecimal.valueOf(sec)).
-					multiply(BigDecimal.valueOf(sigma1)).
-					multiply(BigDecimal.valueOf(sigma2)).
-					add(BigDecimal.valueOf(secSqrt).multiply(BigDecimal.valueOf(sigma3))).
+			BigInteger qMin = new BigDecimal(2).
+					multiply(new BigDecimal(n)).
+					multiply(new BigDecimal(sec)).
+					multiply(new BigDecimal(sigma1)).
+					multiply(new BigDecimal(sigma2)).
+					add(new BigDecimal(secSqrt).multiply(new BigDecimal(sigma3))).
 					toBigInteger().
-					shiftLeft(1).	
+					shiftLeft(1).
+					multiply(BigInteger.valueOf(l)).
+					multiply(BigInteger.valueOf(by)).
 					multiply(k);
 			Map.Entry<BigInteger, ModulusPrime[]> entry = ModulusPrime.getPrimes(exp, qMin);
 			q = entry.getKey();
