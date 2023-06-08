@@ -313,11 +313,13 @@ public class Main {
 			BigInteger[] xy = rlwe.decrypt(ct, skY);
 			time = System.nanoTime()-time;
 			System.out.println("Decryption done in %f ms".formatted(time/1000000D));
-			System.out.println("Result:");
-			System.out.println(Arrays.toString(xy));
 			if(o != null) {
 				System.out.println("Writing result to %s".formatted(o));
 				writeVector(Path.of(o), xy);
+			}
+			else {
+				System.out.println("Result:");
+				System.out.println(Arrays.toString(xy));
 			}
 		}
 		catch(HelpScreenException e) {
@@ -430,16 +432,25 @@ public class Main {
 		ArgumentParser parser = ArgumentParsers.newFor("testDot").build();
 		parser.addArgument("-x").type(String.class).required(true).help("matrix file");
 		parser.addArgument("-y").type(String.class).required(true).help("vector file");
+		parser.addArgument("-o").type(String.class).help("output file");
 		try {
 			Namespace ns = parser.parseArgs(args);
 			String x = ns.getString("x");
 			String y = ns.getString("y");
+			String o = ns.getString("o");
 			System.out.println("Reading matrix from %s".formatted(x));
 			int[][] mat = readMatrix(Path.of(x));
 			System.out.println("Reading vector from %s".formatted(y));
 			int[] vec = readVector(Path.of(y));
-			System.out.println("Result:");
-			System.out.println(Arrays.stream(mat).map(row->Arith.dot(row, vec)).toList());
+			BigInteger[] xy = Arrays.stream(mat).map(row->Arith.dot(row, vec)).toArray(BigInteger[]::new);
+			if(o != null) {
+				System.out.println("Writing result to %s".formatted(o));
+				writeVector(Path.of(o), xy);
+			}
+			else {
+				System.out.println("Result:");
+				System.out.println(Arrays.toString(xy));
+			}
 		}
 		catch(HelpScreenException e) {
 			// NO-OP
